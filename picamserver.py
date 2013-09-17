@@ -37,61 +37,115 @@ else :
 
 
 defaultPort = 8001  # Change here or use the --port argument
+defaultFileroot = os.path.dirname(__file__) # change here or use --fileroot argument
 
 class PiCamHandler(httpserver.SimpleHTTPRequestHandler):
     raspiPath = "/usr/bin/raspistill"
-    shortargs = ['?', 'w', 'h', 'q', 'r', 'l', 
-                'v', 't', 'th', 'd', 'e', 'x', 
-                'tl', 'op', # 'fp', 'p', 'f',
-                'n', 'sh', 'co', 'br', 'sa', 
-                'ISO', 'vs', 'ev', 'ex', 'awb', 
-                'ifx', 'cfx', 'mm', 'rot', 'hf', 'vf', 'roi']
-    longargs = ['help', 'width', 'height', 'quality', 'raw', 'latest', 
-                'verbose', 'timeout', 'thumb', 'demo', 'encoding', 'exif', 
-                'timelapse', 'opacity', #  'fullpreview', 'preview', 'fullscreen',
-                'nopreview', 'sharpness', 'contrast', 'brightness', 'saturation', 
-                'ISO', 'vstab', 'ev', 'exposure', 'awb', 
-                'imxfx', 'colfx', 'metering', 'rotation', 'hflip', 'vflip', 'roi']
+    # Take the help output and convert it to this by 
+    # ^-([a-z]+), *--([a-z]+)\s:\s*(.*)$  ---> ['\2', '\1'],     # \3
+    argnames = [    # Arguments to raspistill, first as long form, then as short
+            ['help', '?'],       # This help information
+            ['width','w'],      # Set image width <size>
+            ['height', 'h'],     # Set image height <size>
+            ['quality', 'q'],     # Set jpeg quality <0 to 100>
+            ['raw', 'r'],     # Add raw bayer data to jpeg metadata
+            ['output', 'o'],     # Output filename <filename> (to write to stdout, use '-o -'). If not specified, no file is saved
+            ['latest', 'l'],     # Link latest complete image to filename <filename>
+            ['verbose', 'v'],     # Output verbose information during run
+            ['timeout', 't'],     # Time (in ms) before takes picture and shuts down (if not specified, set to 5s)
+            ['thumb', 'th'],     # Set thumbnail parameters (x:y:quality)
+            ['demo', 'd'],     # Run a demo mode (cycle through range of camera options, no capture)
+            ['encoding', 'e'],     # Encoding to use for output file (jpg, bmp, gif, png)
+            ['exif', 'x'],     # EXIF tag to apply to captures (format as 'key=value')
+            ['timelapse', 'tl'],     # Timelapse mode. Takes a picture every <t>ms
+            ['fullpreview', 'fp'],     # Run the preview using the still capture resolution (may reduce preview fps)
+            ['preview', 'p'],     # Preview window settings <'x,y,w,h'>
+            ['fullscreen', 'f'],     # Fullscreen preview mode
+            ['opacity', 'op'],     # Preview window opacity (0-255)
+            ['nopreview', 'n'],     # Do not display a preview window
+            ['sharpness', 'sh'],     # Set image sharpness (-100 to 100)
+            ['contrast', 'co'],     # Set image contrast (-100 to 100)
+            ['brightness', 'br'],     # Set image brightness (0 to 100)
+            ['saturation', 'sa'],     # Set image saturation (-100 to 100)
+            ['ISO', 'ISO'],     # Set capture ISO
+            ['vstab', 'vs'],     # Turn on video stablisation
+            ['ev', 'ev'],     # Set EV compensation
+            ['exposure', 'ex'],     # Set exposure mode (see Notes)
+            ['awb', 'awb'],     # Set AWB mode (see Notes)
+            ['imxfx', 'ifx'],     # Set image effect (see Notes)
+            ['colfx', 'cfx'],     # Set colour effect (U:V)
+            ['metering', 'mm'],     # Set metering mode (see Notes)
+            ['rotation', 'rot'],     # Set image rotation (0-359)
+            ['hflip', 'hf'],     # Set horizontal flip
+            ['vflip', 'vf'],     # Set vertical flip
+            ['roi', 'roi'],     # Set region of interest (x,y,w,d as normalised coordinates [0.0-1.0])
+            ]
+    # Which arguments are flags (i.e. that don't take the next command line argument
+    # use flag=0 or flag=1 in the URL to set or reset
+    flagargs = ['help','raw','verbose','demo','fullpreview','fullscreen','nopreview','vstab','hflip','vflip']
+    short2long = dict([(s,l) for l,s, in argnames])
+    defaultargs = {'output':'-', 'timeout':'500','nopreview':'1'}
+
     def do_GET(self) :
         logging.info("GET request: %s" % (self.path,))
         parsedParams = urlparse.urlparse(self.path)
         queryParsed = urlparse.parse_qs(parsedParams.query)
         logging.debug("parsedParams: %s" % (parsedParams,))
         logging.debug("queryParsed: %s" % (queryParsed,))
+        if parsedParams.path == "/" :
+            # default return for empty URL
+            parsedParams.path = "/file/default.html"
+        splitpath = os.path.split(parsedParams.path)
+        logging.debug("splitPath = %s" % (splitpath,))
         if parsedParams.path == "/camera" :
-            image,self.diagnostic = self.runCommand(queryParsed)
+            # Code 304 Not Modified could be used for too-rapid image requests
+            self.image,self.diagnostic = self.runCommand(queryParsed)
             self.send_response(200)
             self.send_header("Content-type", "image/jpeg")
-            self.send_header("Content-length", len(image))
+            self.send_header("Content-length", len(self.image))
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Expires","Thu, 01 Dec 1994 16:00:00 GMT")
             self.end_headers()
-            self.wfile.write(image)
-            # self.wfile.close()
-            # self.wfile.write(str(queryParsed).encode("utf-8"))
-            # self.wfile.write()
+            self.wfile.write(self.image)
+        elif splitpath[0] == '/file' :
+            if len(splitpath) > 2 :
+                raise RuntimeError("Only one directory level allowed")
+            filename = os.path.join(defaultFileroot,splitpath[1])
+            self.send_response(200)
+            #self.send_header("Content-type", self.guess_type(filename))
+            self.end_headers()
+            self.wfile.write(open(filename,"rb").read())
         else :
             self.send_error(501,"Only /camera request is supported now")
 
     def runCommand(self, queryParsed) :
         """From the parsed params, make and execute the RaspiStill command line"""
-        # First strip out the output files
-        outfiles = []
-        for argname in ['-o','--output','-l','--latest'] :
-            if argname in queryParsed :
-                outfiles += queryParsed.pop(argname)
-        for anoutfile in outfiles :
-            self.sanitizeFile(anoutfile)
-        # FIXME handle the output file case
-        cmd = [self.raspiPath,"--timeout","500","--nopreview","--output","-"]
+        # Convert URL to a dict of args
+        args = self.defaultargs.copy()
         residual_args = {}
-        for p,value in queryParsed.items() :
-            if p in self.shortargs :
-                cmd += ['-'+p] + value
-            elif p in self.longargs :
-                # FIXME make it match unique prefixes (or don't bother)
-                cmd += ['--'+p] + value
+        for arg,value in queryParsed.items() :
+            if arg in self.short2long :
+                args[self.short2long(arg)] = value[0]
             else :
-                residual_args[p] = value
+                # IMPROVEME, allow unique prefixes
+                if arg in self.short2long.values() :
+                    args[arg] = value[0]
+                else :
+                    residual_args[arg] = value
+        if args['output'] != '-' or 'latest' in args :
+            raise RuntimeError("File output not yet supported")
+        # Convert dict of args to a command line array
+        cmd = [self.raspiPath]
+        for arg,value in args.items() :
+            if arg in self.flagargs :
+                if value == '1' :
+                    cmd.append('--'+arg)    # Add the flag
+            else :
+                cmd.append('--'+arg)
+                cmd.append(value)
         logging.info("Raspistill command is broken down as %s" % (cmd,))
+        if residual_args :
+            logging.info("Unused arguments are: %s" % (residual_args,))
         # FIXME doesn't return verbose output and other diagnostics yet
         image = subprocess.check_output(cmd,stderr=sys.stderr)
         return (image,"unused args: %s" % (residual_args,)) 
