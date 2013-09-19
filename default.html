@@ -1,0 +1,37 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/1999/REC-html401-19991224/loose.dtd">
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; CHARSET=iso-8859-1">
+<META NAME="description" CONTENT="Raspberry Pi Camera Server">
+<META NAME="keywords" CONTENT="raspi, raspberry pi, camera, python">
+<META NAME="Author" CONTENT="David Palmr">
+<TITLE>Camera</TITLE>
+
+<FORM NAME="camcontrols" ACTION="" METHOD="GET">
+<label for="width">Width</label>
+<INPUT NAME="width" type=text value=1600>
+<label for="wheight">Height</label>
+<INPUT NAME="height" type=text value=1200>
+
+</FORM>
+<img name="camerapic" src="/camera?height=1200&width=1200">
+
+<script type="text/javascript">
+<!-- 
+function reloadpic()
+    {
+        camurl = "/camera?height="
+                + document.camcontrols.height.value
+                + "&width="
+                + document.camcontrols.width.value;
+        document.images["camerapic"].src = camurl;
+    }
+document.images["camerapic"].onload = reloadpic;
+ -->
+
+
+
+</script>
+</BODY>
+</HTML>

@@ -94,8 +94,10 @@ class PiCamHandler(httpserver.SimpleHTTPRequestHandler):
         logging.debug("queryParsed: %s" % (queryParsed,))
         if parsedParams.path == "/" :
             # default return for empty URL
-            parsedParams.path = "/file/default.html"
-        splitpath = os.path.split(parsedParams.path)
+            path = "/file/default.html"
+        else :
+            path = parsedParams.path
+        splitpath = os.path.split(path)
         logging.debug("splitPath = %s" % (splitpath,))
         if parsedParams.path == "/camera" :
             # Code 304 Not Modified could be used for too-rapid image requests
@@ -125,7 +127,7 @@ class PiCamHandler(httpserver.SimpleHTTPRequestHandler):
         residual_args = {}
         for arg,value in queryParsed.items() :
             if arg in self.short2long :
-                args[self.short2long(arg)] = value[0]
+                args[self.short2long[arg]] = value[0]
             else :
                 # IMPROVEME, allow unique prefixes
                 if arg in self.short2long.values() :
