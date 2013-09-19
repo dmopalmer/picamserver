@@ -11,9 +11,35 @@
 <FORM NAME="camcontrols" ACTION="" METHOD="GET">
 <label for="width">Width</label>
 <INPUT NAME="width" type=text value=1600>
-<label for="wheight">Height</label>
+<label for="height">Height</label>
 <INPUT NAME="height" type=text value=1200>
-
+<label for="sharpness">Sharpness (-100 to 100)</label>
+<INPUT NAME="sharpness" type=text value=0>
+<label for="brightness">Brightness (0 to 100)</label>
+<INPUT NAME="brightness" type=text value=50>
+<label for="ISO">ISO</label>
+<select NAME="ISO" value=200>
+ <option>100</option>
+ <option>200</option>
+ <option>400</option>
+ <option>800</option>
+</select>
+<label for="exposure">Exposure</label>
+<select NAME="exposure" >
+ <option>auto</option>
+ <option>off</option>
+ <option>night</option>
+ <option>nightpreview</option>
+ <option>backlight</option>
+ <option>spotlight</option>
+ <option>sports</option>
+ <option>snow</option>
+ <option>beach</option>
+ <option>verylong</option>
+ <option>fixedfps</option>
+ <option>antishake</option>
+ <option>fireworks</option>
+</select>
 </FORM>
 <img name="camerapic" src="/camera?height=1200&width=1200">
 
@@ -21,10 +47,13 @@
 <!-- 
 function reloadpic()
     {
-        camurl = "/camera?height="
-                + document.camcontrols.height.value
-                + "&width="
-                + document.camcontrols.width.value;
+        camurl = "/camera?height=" + document.camcontrols.height.value
+                + "&width=" + document.camcontrols.width.value
+                + "&sharpness=" + document.camcontrols.sharpness.value
+                + "&brightness=" + document.camcontrols.brightness.value
+                + "&ISO=" + document.camcontrols.ISO.value
+                + "&exposure=" + document.camcontrols.exposure.value
+                ;
         document.images["camerapic"].src = camurl;
     }
 document.images["camerapic"].onload = reloadpic;
