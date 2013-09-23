@@ -13,10 +13,14 @@
 <INPUT NAME="width" type=text value=1600>
 <label for="height">Height</label>
 <INPUT NAME="height" type=text value=1200>
+<br>
+<label for="timeout">Timeout (ms)</label>
+<INPUT NAME="timeout" type=text value=1000>
 <label for="sharpness">Sharpness (-100 to 100)</label>
 <INPUT NAME="sharpness" type=text value=0>
 <label for="brightness">Brightness (0 to 100)</label>
 <INPUT NAME="brightness" type=text value=50>
+<br>
 <label for="ISO">ISO</label>
 <select NAME="ISO" value=200>
  <option>100</option>
@@ -40,6 +44,49 @@
  <option>antishake</option>
  <option>fireworks</option>
 </select>
+<label for="awb">White Balance</label>
+<select NAME="awb" >
+ <option>off</option>
+ <option>auto</option>
+ <option>sun</option>
+ <option>cloud</option>
+ <option>shade</option>
+ <option>tungsten</option>
+ <option>fluorescent</option>
+ <option>incandescent</option>
+ <option>flash</option>
+ <option>horizon</option>
+</select>
+<label for="imxfx">Image Effect</label>
+<select NAME="imxfx" >
+ <option>none</option>
+ <option>negative</option>
+ <option>solarise</option>
+ <option>sketch</option>
+ <option>denoise</option>
+ <option>emboss</option>
+ <option>oilpaint</option>
+ <option>hatch</option>
+ <option>gpen</option>
+ <option>pastel</option>
+ <option>watercolour</option>
+ <option>film</option>
+ <option>blur</option>
+ <option>saturation</option>
+ <option>colourswap</option>
+ <option>washedout</option>
+ <option>posterise</option>
+ <option>colourpoint</option>
+ <option>colourbalance</option>
+ <option>cartoon</option>
+</select>
+<label for="metering">Meter mode</label>
+<select NAME="metering" >
+ <option>average</option>
+ <option>spot</option>
+ <option>backlit</option>
+ <option>matrix</option>
+</select>
 </FORM>
 <img name="camerapic" src="/camera?height=1200&width=1200">
 
@@ -49,10 +96,14 @@ function reloadpic()
     {
         camurl = "/camera?height=" + document.camcontrols.height.value
                 + "&width=" + document.camcontrols.width.value
+                + "&timeout=" + document.camcontrols.timeout.value
                 + "&sharpness=" + document.camcontrols.sharpness.value
                 + "&brightness=" + document.camcontrols.brightness.value
                 + "&ISO=" + document.camcontrols.ISO.value
                 + "&exposure=" + document.camcontrols.exposure.value
+                + "&awb=" + document.camcontrols.awb.value
+                + "&imxfx=" + document.camcontrols.imxfx.value
+                + "&metering=" + document.camcontrols.metering.value
                 ;
         document.images["camerapic"].src = camurl;
     }
