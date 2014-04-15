@@ -31,7 +31,7 @@
 <label for="exposure">Exposure</label>
 <select NAME="exposure" >
  <option>auto</option>
- <option>off</option>
+ <option>manual</option>
  <option>night</option>
  <option>nightpreview</option>
  <option>backlight</option>
@@ -44,6 +44,9 @@
  <option>antishake</option>
  <option>fireworks</option>
 </select>
+<label for="shutter">Shutter speed (if manual uS below 330000)</label>
+<br>
+<INPUT NAME="shutter" type=text value=0>
 <label for="awb">White Balance</label>
 <select NAME="awb" >
  <option>off</option>
@@ -100,11 +103,15 @@ function reloadpic()
                 + "&sharpness=" + document.camcontrols.sharpness.value
                 + "&brightness=" + document.camcontrols.brightness.value
                 + "&ISO=" + document.camcontrols.ISO.value
-                + "&exposure=" + document.camcontrols.exposure.value
                 + "&awb=" + document.camcontrols.awb.value
                 + "&imxfx=" + document.camcontrols.imxfx.value
-                + "&metering=" + document.camcontrols.metering.value
                 ;
+	if (document.camcontrols.exposure.value == "manual"  && document.camcontrols.shutter.value > 0) {
+	    camurl += "&shutter=" + document.camcontrols.shutter.value;
+        } else {
+	    camurl += "&exposure=" + document.camcontrols.exposure.value
+                + "&metering=" + document.camcontrols.metering.value;
+	}
         document.images["camerapic"].src = camurl;
     }
 document.images["camerapic"].onload = reloadpic;

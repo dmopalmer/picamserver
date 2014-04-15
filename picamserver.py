@@ -71,6 +71,7 @@ class PiCamHandler(httpserver.SimpleHTTPRequestHandler):
             ['vstab', 'vs'],     # Turn on video stablisation
             ['ev', 'ev'],     # Set EV compensation
             ['exposure', 'ex'],     # Set exposure mode (see Notes)
+            ['shutter', 'ss'],  # set shutter speed in microseconds
             ['awb', 'awb'],     # Set AWB mode (see Notes)
             ['imxfx', 'ifx'],     # Set image effect (see Notes)
             ['colfx', 'cfx'],     # Set colour effect (U:V)
